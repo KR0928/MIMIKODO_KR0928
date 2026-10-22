@@ -2,67 +2,80 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MIMIKODO 対戦補助ツール</title>
 
 <style>
-body{
-background:#1e1e1e;
-color:white;
-font-family:sans-serif;
-max-width:1200px;
-margin:auto;
-padding:15px;
-}
 
-.section{
-background:#2d2d2d;
-padding:15px;
-border-radius:10px;
-margin-bottom:15px;
+body{
+    background:#1e1e1e;
+    color:white;
+    font-family:sans-serif;
+    max-width:1200px;
+    margin:auto;
+    padding:15px;
 }
 
 h1,h2{
-text-align:center;
+    text-align:center;
+}
+
+.section{
+    background:#2d2d2d;
+    border-radius:10px;
+    padding:15px;
+    margin-bottom:15px;
 }
 
 table{
-width:100%;
-border-collapse:collapse;
+    width:100%;
+    border-collapse:collapse;
 }
 
 th,td{
-border:1px solid #555;
-padding:8px;
-text-align:center;
+    border:1px solid #555;
+    padding:8px;
+    text-align:center;
 }
 
 button{
-margin:3px;
-padding:10px;
-border:none;
-border-radius:8px;
-cursor:pointer;
+    margin:4px;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:15px;
 }
 
 input{
-width:70px;
-text-align:center;
+    width:80px;
+    text-align:center;
 }
 
 .i{background:#ff7f50;}
-.k{background:#4da6ff;}
+.k{background:#69a8ff;}
 .f{background:#90ee90;color:black;}
 .j{background:#ffd700;color:black;}
 .p{background:#ff69b4;}
 
-.good{color:lightgreen;}
-.bad{color:#ff8080;}
+.ctrl{
+    background:#666;
+    color:white;
+}
+
+.good{
+    color:lightgreen;
+}
+
+.bad{
+    color:#ff8080;
+}
 
 #history{
-max-height:250px;
-overflow:auto;
+    max-height:250px;
+    overflow:auto;
 }
+
 </style>
 </head>
 <body>
@@ -74,11 +87,32 @@ overflow:auto;
 <h2>自分の手札</h2>
 
 <table>
-<tr><td>居合</td><td><input id="my_i" type="number" min="0" max="6" value="0" onchange="updateMyHand()"></td></tr>
-<tr><td>回避</td><td><input id="my_k" type="number" min="0" max="5" value="0" onchange="updateMyHand()"></td></tr>
-<tr><td>不動</td><td><input id="my_f" type="number" min="0" max="6" value="0" onchange="updateMyHand()"></td></tr>
-<tr><td>迅雷</td><td><input id="my_j" type="number" min="0" max="2" value="0" onchange="updateMyHand()"></td></tr>
-<tr><td>パリィ</td><td><input id="my_p" type="number" min="0" max="3" value="0" onchange="updateMyHand()"></td></tr>
+
+<tr>
+<td>居合</td>
+<td><input id="my_i" type="number" min="0" max="6" value="0"></td>
+</tr>
+
+<tr>
+<td>回避</td>
+<td><input id="my_k" type="number" min="0" max="5" value="0"></td>
+</tr>
+
+<tr>
+<td>不動</td>
+<td><input id="my_f" type="number" min="0" max="6" value="0"></td>
+</tr>
+
+<tr>
+<td>迅雷</td>
+<td><input id="my_j" type="number" min="0" max="2" value="0"></td>
+</tr>
+
+<tr>
+<td>パリィ</td>
+<td><input id="my_p" type="number" min="0" max="3" value="0"></td>
+</tr>
+
 </table>
 
 <h3 id="myTotal" class="bad">0 / 10</h3>
@@ -87,11 +121,15 @@ overflow:auto;
 
 <div class="section">
 
-<h2>相手情報</h2>
+<h2>相手分析</h2>
 
 <table id="enemyTable"></table>
 
-<p>相手残り手札 : <span id="enemyHand">10</span>枚</p>
+<p>
+相手残り手札：
+<span id="enemyHand">10</span>
+枚
+</p>
 
 </div>
 
@@ -99,17 +137,17 @@ overflow:auto;
 
 <h2>カードを見た</h2>
 
-<button class="i" onclick="see('居合')">居合</button>
-<button class="k" onclick="see('回避')">回避</button>
-<button class="f" onclick="see('不動')">不動</button>
-<button class="j" onclick="see('迅雷')">迅雷</button>
-<button class="p" onclick="see('パリィ')">パリィ</button>
+<button class="i" onclick="seeCard('居合')">居合</button>
+<button class="k" onclick="seeCard('回避')">回避</button>
+<button class="f" onclick="seeCard('不動')">不動</button>
+<button class="j" onclick="seeCard('迅雷')">迅雷</button>
+<button class="p" onclick="seeCard('パリィ')">パリィ</button>
 
 </div>
 
 <div class="section">
 
-<h2>見えていたカードが使用された</h2>
+<h2>見えていたカード使用</h2>
 
 <button class="i" onclick="usedSeen('居合')">居合</button>
 <button class="k" onclick="usedSeen('回避')">回避</button>
@@ -121,7 +159,7 @@ overflow:auto;
 
 <div class="section">
 
-<h2>新規カードが使用された</h2>
+<h2>新規カード使用</h2>
 
 <button class="i" onclick="usedNew('居合')">居合</button>
 <button class="k" onclick="usedNew('回避')">回避</button>
@@ -139,213 +177,419 @@ overflow:auto;
 
 <br>
 
-<button onclick="resetAll()">リセット</button>
+<button class="ctrl" onclick="undo()">1手戻す</button>
 
-</div>
+<button class="ctrl" onclick="resetAll()">リセット</button>
 
 <script>
 
 const deck={
-"居合":6,
-"回避":5,
-"不動":6,
-"迅雷":2,
-"パリィ":3
+    "居合":6,
+    "回避":5,
+    "不動":6,
+    "迅雷":2,
+    "パリィ":3
 };
 
-let visible={};
-let used={};
+let visible={
+    "居合":0,
+    "回避":0,
+    "不動":0,
+    "迅雷":0,
+    "パリィ":0
+};
 
-Object.keys(deck).forEach(card=>{
-visible[card]=0;
-used[card]=0;
-});
+let used={
+    "居合":0,
+    "回避":0,
+    "不動":0,
+    "迅雷":0,
+    "パリィ":0
+};
 
 let history=[];
+let snapshots=[];
 
-function updateMyHand(){
+function saveState(){
 
-let total=
-Number(my_i.value)+
-Number(my_k.value)+
-Number(my_f.value)+
-Number(my_j.value)+
-Number(my_p.value);
+    snapshots.push({
+        visible:JSON.parse(JSON.stringify(visible)),
+        used:JSON.parse(JSON.stringify(used)),
+        history:[...history]
+    });
 
-myTotal.textContent=total+" / 10";
+    localStorage.setItem(
+        "mimikodo_save",
+        JSON.stringify({
+            visible,
+            used,
+            history,
+            my:{
+                i:my_i.value,
+                k:my_k.value,
+                f:my_f.value,
+                j:my_j.value,
+                p:my_p.value
+            }
+        })
+    );
 
-if(total===10){
-myTotal.className="good";
 }
-else{
-myTotal.className="bad";
+
+function loadState(){
+
+    const data=
+        localStorage.getItem(
+            "mimikodo_save"
+        );
+
+    if(!data) return;
+
+    const obj=
+        JSON.parse(data);
+
+    visible=obj.visible || visible;
+    used=obj.used || used;
+    history=obj.history || history;
+
+    if(obj.my){
+
+        my_i.value=obj.my.i;
+        my_k.value=obj.my.k;
+        my_f.value=obj.my.f;
+        my_j.value=obj.my.j;
+        my_p.value=obj.my.p;
+
+    }
+
 }
+
+function updateMyTotal(){
+
+    let total=
+        Number(my_i.value)+
+        Number(my_k.value)+
+        Number(my_f.value)+
+        Number(my_j.value)+
+        Number(my_p.value);
+
+    myTotal.textContent=
+        total+" / 10";
+
+    if(total===10){
+        myTotal.className="good";
+    }
+    else{
+        myTotal.className="bad";
+    }
+
 }
 
 function nCr(n,r){
 
-if(r<0 || r>n) return 0;
-if(r===0 || r===n) return 1;
+    if(r<0 || r>n) return 0;
 
-let result=1;
+    if(r===0 || r===n) return 1;
 
-for(let i=1;i<=r;i++){
-result=result*(n-r+i)/i;
+    let result=1;
+
+    for(let i=1;i<=r;i++){
+        result=
+            result*
+            (n-r+i)/
+            i;
+    }
+
+    return result;
+
 }
 
-return result;
+function getMyCards(){
+
+    return{
+        "居合":Number(my_i.value),
+        "回避":Number(my_k.value),
+        "不動":Number(my_f.value),
+        "迅雷":Number(my_j.value),
+        "パリィ":Number(my_p.value)
+    };
+
 }
 
 function probability(card){
 
-if(visible[card] > 0) return 100;
+    if(visible[card]>0){
+        return 100;
+    }
 
-let remainingCard =
-deck[card] - used[card];
+    const my=getMyCards();
 
-if(remainingCard<=0) return 0;
+    let candidate=
+        deck[card]
+        - my[card]
+        - used[card];
 
-let usedTotal=0;
+    if(candidate<=0){
+        return 0;
+    }
 
-for(let c in used){
-usedTotal += used[c];
-}
+    let pool=0;
 
-let remainingDeck = 22 - usedTotal;
+    for(let c in deck){
 
-let handRemain = 10 - usedTotal;
+        pool +=
+            deck[c]
+            - my[c]
+            - used[c];
 
-if(handRemain<=0) return 0;
+    }
 
-let totalComb=nCr(remainingDeck,handRemain);
+    let usedTotal=0;
 
-let missComb=nCr(
-remainingDeck-remainingCard,
-handRemain
-);
+    for(let c in used){
+        usedTotal += used[c];
+    }
 
-if(totalComb===0) return 0;
+    let enemyHand=
+        10-usedTotal;
 
-return (1-missComb/totalComb)*100;
+    if(enemyHand<=0){
+        return 0;
+    }
+
+    if(candidate>=enemyHand){
+        return 100;
+    }
+
+    let all=
+        nCr(pool,enemyHand);
+
+    let miss=
+        nCr(
+            pool-candidate,
+            enemyHand
+        );
+
+    if(all===0){
+        return 0;
+    }
+
+    return (
+        (1-miss/all)
+        *100
+    );
 
 }
 
 function updateTable(){
 
-let html=`
-<tr>
-<th>カード</th>
-<th>見えている</th>
-<th>使用済み</th>
-<th>残り枚数</th>
-<th>所持確率</th>
-</tr>
-`;
+    const my=
+        getMyCards();
 
-let usedTotal=0;
+    let html=`
+    <tr>
+    <th>カード</th>
+    <th>自分</th>
+    <th>見えている</th>
+    <th>使用済み</th>
+    <th>残候補</th>
+    <th>所持率</th>
+    </tr>
+    `;
 
-for(let c in used){
-usedTotal+=used[c];
+    let usedTotal=0;
+
+    for(let c in used){
+        usedTotal += used[c];
+    }
+
+    for(let card in deck){
+
+        let remain=
+            Math.max(
+                0,
+                deck[card]
+                - my[card]
+                - used[card]
+            );
+
+        html += `
+        <tr>
+        <td>${card}</td>
+        <td>${my[card]}</td>
+        <td>${visible[card]}</td>
+        <td>${used[card]}</td>
+        <td>${remain}</td>
+        <td>${probability(card).toFixed(1)}%</td>
+        </tr>
+        `;
+    }
+
+    document.getElementById(
+        "enemyTable"
+    ).innerHTML=html;
+
+    enemyHand.textContent=
+        Math.max(
+            0,
+            10-usedTotal
+        );
+
+    renderHistory();
+
 }
 
-for(let card in deck){
+function renderHistory(){
 
-let remain=
-Math.max(
-0,
-deck[card]-used[card]
-);
+    let text="";
 
-html+=`
-<tr>
-<td>${card}</td>
-<td>${visible[card]}</td>
-<td>${used[card]}</td>
-<td>${remain}</td>
-<td>${probability(card).toFixed(1)}%</td>
-</tr>
-`;
-}
+    history.forEach((h,i)=>{
 
-enemyTable.innerHTML=html;
+        text +=
+            (i+1)+
+            ". "+
+            h+
+            "<br>";
 
-enemyHand.textContent=
-Math.max(
-0,
-10-usedTotal
-);
+    });
 
-let text="";
-
-history.forEach((h,i)=>{
-text+=(i+1)+". "+h+"<br>";
-});
-
-document.getElementById("history").innerHTML=text;
+    document.getElementById(
+        "history"
+    ).innerHTML=text;
 
 }
 
-function see(card){
+function seeCard(card){
 
-visible[card]++;
+    saveState();
 
-history.push("見た → "+card);
+    visible[card]++;
 
-updateTable();
+    history.push(
+        "見た → "+card
+    );
+
+    updateTable();
 
 }
 
 function usedSeen(card){
 
-if(visible[card]<=0){
+    saveState();
 
-history.push("エラー → "+card+"が見えていません");
+    if(visible[card]>0){
 
-updateTable();
-return;
+        visible[card]--;
+        used[card]++;
 
-}
+        history.push(
+            "見えていたカード使用 → "+
+            card
+        );
 
-visible[card]--;
-used[card]++;
+    }else{
 
-history.push("見えていたカード使用 → "+card);
+        history.push(
+            "エラー → "+
+            card+
+            "が見えていません"
+        );
 
-updateTable();
+    }
+
+    updateTable();
 
 }
 
 function usedNew(card){
 
-used[card]++;
+    saveState();
 
-history.push("新規カード使用 → "+card);
+    used[card]++;
 
-updateTable();
+    history.push(
+        "新規カード使用 → "+
+        card
+    );
+
+    updateTable();
+
+}
+
+function undo(){
+
+    if(
+        snapshots.length===0
+    ){
+        return;
+    }
+
+    let state=
+        snapshots.pop();
+
+    visible=
+        state.visible;
+
+    used=
+        state.used;
+
+    history=
+        state.history;
+
+    updateTable();
 
 }
 
 function resetAll(){
 
-if(!confirm("リセットしますか？")){
-return;
+    if(
+        !confirm(
+            "リセットしますか？"
+        )
+    ){
+        return;
+    }
+
+    saveState();
+
+    for(let c in deck){
+
+        visible[c]=0;
+        used[c]=0;
+
+    }
+
+    history=[];
+
+    updateTable();
+
 }
 
-for(let card in deck){
-visible[card]=0;
-used[card]=0;
-}
+[
+my_i,
+my_k,
+my_f,
+my_j,
+my_p
+].forEach(input=>{
 
-history=[];
+    input.addEventListener(
+        "change",
+        ()=>{
+            updateMyTotal();
+            updateTable();
+            saveState();
+        }
+    );
 
-updateTable();
+});
 
-}
-
-updateMyHand();
+loadState();
+updateMyTotal();
 updateTable();
 
 </script>
 
 </body>
 </html>
+</div>
