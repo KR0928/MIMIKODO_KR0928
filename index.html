@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>カード管理ツール</title>
+
+<style>
+body{
+    background:#1f1f1f;
+    color:white;
+    font-family:sans-serif;
+    margin:20px;
+}
+h1,h2{
+    text-align:center;
+}
+.section{
+    background:#2f2f2f;
+    border-radius:10px;
+    padding:15px;
+    margin-bottom:15px;
+}
+
+button{
+    margin:5px;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:15px;
+}
+
+.card{
+    width:90px;
+}
+
+.i{background:#ff7f50;}
+.k{background:#66aaff;}
+.f{background:#90ee90;color:black;}
+.j{background:#ffd700;color:black;}
+.p{background:#ff69b4;}
+.ctrl{background:#666;color:white;}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+th,td{
+    border:1px solid #555;
+    padding:8px;
+    text-align:center;
+}
+
+#history{
+    max-height:250px;
+    overflow-y:auto;
+}
+</style>
+</head>
+
+<body>
+
+<h1>カード管理ツール</h1>
+
+<div class="section">
+<h2>現在の状況</h2>
+
+<table id="table"></table>
+
+<p>判明している手札枚数：<span id="knownTotal">0</span>/10</p>
+<p>未判明枠：<span id="unknownTotal">10</span></p>
+</div>
+
+<div class="section">
+<h2>カードを見た</h2>
+
+<button class="card i" onclick="seeCard('居合')">居合</button>
+<button class="card k" onclick="seeCard('回避')">回避</button>
+<button class="card f" onclick="seeCard('不動')">不動</button>
+<button class="card j" onclick="seeCard('迅雷')">迅雷</button>
+<button class="card p" onclick="seeCard('パリィ')">パリィ</button>
+
+</div>
+
+<div class="section">
+<h2>見たカードが使われた</h2>
+
+<button class="card i" onclick="usedKnown('居合')">居合</button>
+<button class="card k" onclick="usedKnown('回避')">回避</button>
+<button class="card f" onclick="usedKnown('不動')">不動</button>
+<button class="card j" onclick="usedKnown('迅雷')">迅雷</button>
+<button class="card p" onclick="usedKnown('パリィ')">パリィ</button>
+
+</div>
+
+<div class="section">
+<h2>新規カードが使われた</h2>
+
+<button class="card i" onclick="usedNew('居合')">居合</button>
+<button class="card k" onclick="usedNew('回避')">回避</button>
+<button class="card f" onclick="usedNew('不動')">不動</button>
+<button class="card j" onclick="usedNew('迅雷')">迅雷</button>
+<button class="card p" onclick="usedNew('パリィ')">パリィ</button>
+
+</div>
+
+<div class="section">
+<h2>操作</h2>
+
+<button class="ctrl" onclick="undo()">1手戻す</button>
+<button class="ctrl" onclick="resetGame()">リセット</button>
+
+</div>
+
+<div class="section">
+
+<h2>履歴</h2>
+
+<div id="history"></div>
+
+</div>
+
+<script>
+
+const deck={
+"居合":6,
+"回避":5,
+"不動":6,
+"迅雷":2,
+"パリィ":3
+};
+
+let known={
+"居合":0,
+"回避":0,
+"不動":0,
+"迅雷":0,
+"パリィ":0
+};
+
+let visible={
+"居合":0,
+"回避":0,
+"不動":0,
+"迅雷":0,
+"パリィ":0
+};
+
+let history=[];
+
+function combination(n,r){
+
+if(r<0 || r>n)return 0;
+
+let result=1;
+
+for(let i=1;i<=r;i++){
+
+result=result*(n-r+i)/i;
+
+}
+
+return result;
+
+}
+
+function probability(card){
+
+if(known[card]>0)return 100;
+
+let knownTotal=0;
+
+for(let k in known){
+
+knownTotal+=known[k];
+
+}
+
+let unknown=10-knownTotal;
+
+const totalComb=combination(22,unknown);
+
+const missComb=combination(22-deck[card],unknown);
+
+if(totalComb===0)return 0;
+
+return (1-missComb/totalComb)*100;
+
+}
+
+function updateDisplay(){
+
+let html=`
+<tr>
+<th>カード</th>
+<th>デッキ枚数</th>
+<th>確定所持</th>
+<th>未使用で見えている枚数</th>
+<th>所持確率</th>
+</tr>
+`;
+
+let total=0;
+
+for(let card in deck){
+
+total+=known[card];
+
+html+=`
+<tr>
+<td>${card}</td>
+<td>${deck[card]}</td>
+<td>${known[card]}</td>
+<td>${visible[card]}</td>
+<td>${probability(card).toFixed(1)}%</td>
+</tr>
+`;
+
+}
+
+document.getElementById("table").innerHTML=html;
+
+document.getElementById("knownTotal").innerText=total;
+
+document.getElementById("unknownTotal").innerText=Math.max(0,10-total);
+
+renderHistory();
+
+}
+
+function renderHistory(){
+
+let text="";
+
+history.forEach((h,i)=>{
+
+text += `${i+1}. ${h}<br>`;
+
+});
+
+document.getElementById("history").innerHTML=text;
+
+}
+
+function seeCard(card){
+
+known[card]++;
+visible[card]++;
+
+history.push("見た → "+card);
+
+updateDisplay();
+
+}
+
+function usedKnown(card){
+
+if(visible[card]>0){
+
+visible[card]--;
+
+history.push("見えていたカード使用 → "+card);
+
+}else{
+
+history.push("エラー(見えているカード不足) → "+card);
+
+}
+
+updateDisplay();
+
+}
+
+function usedNew(card){
+
+known[card]++;
+
+history.push("新規カード使用 → "+card);
+
+updateDisplay();
+
+}
+
+function undo(){
+
+if(history.length===0)return;
+
+alert("簡易版のためUndoは履歴だけ戻します。完全Undoは次版で実装推奨です。");
+
+history.pop();
+
+renderHistory();
+
+}
+
+function resetGame(){
+
+if(!confirm("リセットしますか？")) return;
+
+for(let c in known){
+known[c]=0;
+visible[c]=0;
+}
+
+history=[];
+
+updateDisplay();
+
+}
+
+updateDisplay();
+
+</script>
+
+</body>
+</html>
