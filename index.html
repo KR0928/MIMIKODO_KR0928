@@ -2,21 +2,21 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MIMIKODO対戦補助ツール</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIMIKODO 対戦補助ツール</title>
 
 <style>
 body{
 background:#1e1e1e;
 color:white;
 font-family:sans-serif;
-max-width:1100px;
+max-width:1200px;
 margin:auto;
 padding:15px;
 }
 
 .section{
-background:#2e2e2e;
+background:#2d2d2d;
 padding:15px;
 border-radius:10px;
 margin-bottom:15px;
@@ -45,27 +45,26 @@ border-radius:8px;
 cursor:pointer;
 }
 
+input{
+width:70px;
+text-align:center;
+}
+
 .i{background:#ff7f50;}
 .k{background:#4da6ff;}
 .f{background:#90ee90;color:black;}
 .j{background:#ffd700;color:black;}
 .p{background:#ff69b4;}
 
+.good{color:lightgreen;}
+.bad{color:#ff8080;}
+
 #history{
 max-height:250px;
 overflow:auto;
 }
-
-.good{
-color:lightgreen;
-}
-
-.bad{
-color:#ff8080;
-}
 </style>
 </head>
-
 <body>
 
 <h1>MIMIKODO 対戦補助ツール</h1>
@@ -82,7 +81,7 @@ color:#ff8080;
 <tr><td>パリィ</td><td><input id="my_p" type="number" min="0" max="3" value="0" onchange="updateMyHand()"></td></tr>
 </table>
 
-<h3 id="handTotal" class="bad">0 / 10</h3>
+<h3 id="myTotal" class="bad">0 / 10</h3>
 
 </div>
 
@@ -92,7 +91,7 @@ color:#ff8080;
 
 <table id="enemyTable"></table>
 
-<p>相手残り手札 : <span id="remainHand">10</span>枚</p>
+<p>相手残り手札 : <span id="enemyHand">10</span>枚</p>
 
 </div>
 
@@ -100,11 +99,11 @@ color:#ff8080;
 
 <h2>カードを見た</h2>
 
-<button class="i" onclick="seeCard('居合')">居合</button>
-<button class="k" onclick="seeCard('回避')">回避</button>
-<button class="f" onclick="seeCard('不動')">不動</button>
-<button class="j" onclick="seeCard('迅雷')">迅雷</button>
-<button class="p" onclick="seeCard('パリィ')">パリィ</button>
+<button class="i" onclick="see('居合')">居合</button>
+<button class="k" onclick="see('回避')">回避</button>
+<button class="f" onclick="see('不動')">不動</button>
+<button class="j" onclick="see('迅雷')">迅雷</button>
+<button class="p" onclick="see('パリィ')">パリィ</button>
 
 </div>
 
@@ -135,22 +134,31 @@ color:#ff8080;
 <div class="section">
 
 <h2>履歴</h2>
+
 <div id="history"></div>
+
 <br>
+
 <button onclick="resetAll()">リセット</button>
 
 </div>
 
 <script>
 
-const cards=["居合","回避","不動","迅雷","パリィ"];
+const deck={
+"居合":6,
+"回避":5,
+"不動":6,
+"迅雷":2,
+"パリィ":3
+};
 
-let seen={};
+let visible={};
 let used={};
 
-cards.forEach(c=>{
-seen[c]=0;
-used[c]=0;
+Object.keys(deck).forEach(card=>{
+visible[card]=0;
+used[card]=0;
 });
 
 let history=[];
@@ -164,15 +172,62 @@ Number(my_f.value)+
 Number(my_j.value)+
 Number(my_p.value);
 
-let obj=document.getElementById("handTotal");
-
-obj.innerHTML=total+" / 10";
+myTotal.textContent=total+" / 10";
 
 if(total===10){
-obj.className="good";
-}else{
-obj.className="bad";
+myTotal.className="good";
 }
+else{
+myTotal.className="bad";
+}
+}
+
+function nCr(n,r){
+
+if(r<0 || r>n) return 0;
+if(r===0 || r===n) return 1;
+
+let result=1;
+
+for(let i=1;i<=r;i++){
+result=result*(n-r+i)/i;
+}
+
+return result;
+}
+
+function probability(card){
+
+if(visible[card] > 0) return 100;
+
+let remainingCard =
+deck[card] - used[card];
+
+if(remainingCard<=0) return 0;
+
+let usedTotal=0;
+
+for(let c in used){
+usedTotal += used[c];
+}
+
+let remainingDeck = 22 - usedTotal;
+
+let handRemain = 10 - usedTotal;
+
+if(handRemain<=0) return 0;
+
+let totalComb=nCr(remainingDeck,handRemain);
+
+let missComb=nCr(
+remainingDeck-remainingCard,
+handRemain
+);
+
+if(totalComb===0) return 0;
+
+return (1-missComb/totalComb)*100;
+
 }
 
 function updateTable(){
@@ -180,46 +235,59 @@ function updateTable(){
 let html=`
 <tr>
 <th>カード</th>
-<th>現在見えている</th>
+<th>見えている</th>
 <th>使用済み</th>
+<th>残り枚数</th>
+<th>所持確率</th>
 </tr>
 `;
 
-cards.forEach(card=>{
+let usedTotal=0;
+
+for(let c in used){
+usedTotal+=used[c];
+}
+
+for(let card in deck){
+
+let remain=
+Math.max(
+0,
+deck[card]-used[card]
+);
 
 html+=`
 <tr>
 <td>${card}</td>
-<td>${seen[card]}</td>
+<td>${visible[card]}</td>
 <td>${used[card]}</td>
+<td>${remain}</td>
+<td>${probability(card).toFixed(1)}%</td>
 </tr>
 `;
-
-});
+}
 
 enemyTable.innerHTML=html;
 
-let totalUsed=0;
-
-cards.forEach(card=>{
-totalUsed+=used[card];
-});
-
-remainHand.innerHTML=Math.max(10-totalUsed,0);
+enemyHand.textContent=
+Math.max(
+0,
+10-usedTotal
+);
 
 let text="";
 
 history.forEach((h,i)=>{
-text+=(i+1)+" . "+h+"<br>";
+text+=(i+1)+". "+h+"<br>";
 });
 
 document.getElementById("history").innerHTML=text;
 
 }
 
-function seeCard(card){
+function see(card){
 
-seen[card]++;
+visible[card]++;
 
 history.push("見た → "+card);
 
@@ -229,18 +297,19 @@ updateTable();
 
 function usedSeen(card){
 
-if(seen[card]>0){
+if(visible[card]<=0){
 
-seen[card]--;
+history.push("エラー → "+card+"が見えていません");
+
+updateTable();
+return;
+
+}
+
+visible[card]--;
 used[card]++;
 
 history.push("見えていたカード使用 → "+card);
-
-}else{
-
-history.push("エラー → "+card+" が見えていません");
-
-}
 
 updateTable();
 
@@ -258,12 +327,14 @@ updateTable();
 
 function resetAll(){
 
-if(!confirm("リセットしますか？")) return;
+if(!confirm("リセットしますか？")){
+return;
+}
 
-cards.forEach(c=>{
-seen[c]=0;
-used[c]=0;
-});
+for(let card in deck){
+visible[card]=0;
+used[card]=0;
+}
 
 history=[];
 
@@ -278,4 +349,3 @@ updateTable();
 
 </body>
 </html>
-``
