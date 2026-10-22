@@ -2,28 +2,43 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>カード管理ツール</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIMIKODO 対戦補助ツール</title>
 
 <style>
 body{
-    background:#1f1f1f;
+    background:#1e1e1e;
     color:white;
     font-family:sans-serif;
-    margin:20px;
+    max-width:1200px;
+    margin:auto;
+    padding:15px;
 }
+
 h1,h2{
     text-align:center;
 }
+
 .section{
-    background:#2f2f2f;
+    background:#2e2e2e;
     border-radius:10px;
     padding:15px;
     margin-bottom:15px;
 }
 
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    border:1px solid #555;
+    padding:8px;
+    text-align:center;
+}
+
 button{
-    margin:5px;
+    margin:4px;
     padding:10px;
     border:none;
     border-radius:8px;
@@ -31,85 +46,133 @@ button{
     font-size:15px;
 }
 
-.card{
-    width:90px;
+input{
+    width:70px;
+    text-align:center;
+    font-size:16px;
 }
 
 .i{background:#ff7f50;}
-.k{background:#66aaff;}
+.k{background:#4da6ff;}
 .f{background:#90ee90;color:black;}
 .j{background:#ffd700;color:black;}
 .p{background:#ff69b4;}
 .ctrl{background:#666;color:white;}
 
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-th,td{
-    border:1px solid #555;
-    padding:8px;
-    text-align:center;
-}
-
 #history{
     max-height:250px;
     overflow-y:auto;
+}
+
+.good{
+    color:lightgreen;
+}
+
+.bad{
+    color:#ff8080;
 }
 </style>
 </head>
 
 <body>
 
-<h1>カード管理ツール</h1>
+<h1>MIMIKODO 対戦補助ツール</h1>
 
 <div class="section">
-<h2>現在の状況</h2>
 
-<table id="table"></table>
+<h2>自分の手札</h2>
 
-<p>判明している手札枚数：<span id="knownTotal">0</span>/10</p>
-<p>未判明枠：<span id="unknownTotal">10</span></p>
+<table>
+<tr>
+<th>カード</th>
+<th>枚数</th>
+</tr>
+
+<tr>
+<td>居合</td>
+<td><input type="number" id="my_i" min="0" max="6" value="0" onchange="updateMyTotal()"></td>
+</tr>
+
+<tr>
+<td>回避</td>
+<td><input type="number" id="my_k" min="0" max="5" value="0" onchange="updateMyTotal()"></td>
+</tr>
+
+<tr>
+<td>不動</td>
+<td><input type="number" id="my_f" min="0" max="6" value="0" onchange="updateMyTotal()"></td>
+</tr>
+
+<tr>
+<td>迅雷</td>
+<td><input type="number" id="my_j" min="0" max="2" value="0" onchange="updateMyTotal()"></td>
+</tr>
+
+<tr>
+<td>パリィ</td>
+<td><input type="number" id="my_p" min="0" max="3" value="0" onchange="updateMyTotal()"></td>
+</tr>
+
+</table>
+
+<p>
+手札合計 :
+<span id="myTotal" class="bad">0 / 10</span>
+</p>
+
 </div>
 
 <div class="section">
+
+<h2>相手情報</h2>
+
+<table id="enemyTable"></table>
+
+<p>
+判明枠 :
+<span id="knownCount">0</span>/10
+</p>
+
+<p>
+未判明枠 :
+<span id="unknownCount">10</span>
+</p>
+
+</div>
+
+<div class="section">
+
 <h2>カードを見た</h2>
 
-<button class="card i" onclick="seeCard('居合')">居合</button>
-<button class="card k" onclick="seeCard('回避')">回避</button>
-<button class="card f" onclick="seeCard('不動')">不動</button>
-<button class="card j" onclick="seeCard('迅雷')">迅雷</button>
-<button class="card p" onclick="seeCard('パリィ')">パリィ</button>
+<button class="i" onclick="seeCard('居合')">居合</button>
+<button class="k" onclick="seeCard('回避')">回避</button>
+<button class="f" onclick="seeCard('不動')">不動</button>
+<button class="j" onclick="seeCard('迅雷')">迅雷</button>
+<button class="p" onclick="seeCard('パリィ')">パリィ</button>
 
 </div>
 
 <div class="section">
-<h2>見たカードが使われた</h2>
 
-<button class="card i" onclick="usedKnown('居合')">居合</button>
-<button class="card k" onclick="usedKnown('回避')">回避</button>
-<button class="card f" onclick="usedKnown('不動')">不動</button>
-<button class="card j" onclick="usedKnown('迅雷')">迅雷</button>
-<button class="card p" onclick="usedKnown('パリィ')">パリィ</button>
+<h2>見えていたカードが使用された</h2>
 
-</div>
-
-<div class="section">
-<h2>新規カードが使われた</h2>
-
-<button class="card i" onclick="usedNew('居合')">居合</button>
-<button class="card k" onclick="usedNew('回避')">回避</button>
-<button class="card f" onclick="usedNew('不動')">不動</button>
-<button class="card j" onclick="usedNew('迅雷')">迅雷</button>
-<button class="card p" onclick="usedNew('パリィ')">パリィ</button>
+<button class="i" onclick="usedKnown('居合')">居合</button>
+<button class="k" onclick="usedKnown('回避')">回避</button>
+<button class="f" onclick="usedKnown('不動')">不動</button>
+<button class="j" onclick="usedKnown('迅雷')">迅雷</button>
+<button class="p" onclick="usedKnown('パリィ')">パリィ</button>
 
 </div>
 
 <div class="section">
-<h2>操作</h2>
 
-<button class="ctrl" onclick="undo()">1手戻す</button>
-<button class="ctrl" onclick="resetGame()">リセット</button>
+<h2>新規カードが使用された</h2>
+
+<button class="i" onclick="usedNew('居合')">居合</button>
+<button class="k" onclick="usedNew('回避')">回避</button>
+<button class="f" onclick="usedNew('不動')">不動</button>
+<button class="j" onclick="usedNew('迅雷')">迅雷</button>
+<button class="p" onclick="usedNew('パリィ')">パリィ</button>
 
 </div>
 
@@ -118,6 +181,10 @@ th,td{
 <h2>履歴</h2>
 
 <div id="history"></div>
+
+<br>
+
+<button class="ctrl" onclick="resetAll()">リセット</button>
 
 </div>
 
@@ -149,16 +216,36 @@ let visible={
 
 let history=[];
 
-function combination(n,r){
+function updateMyTotal(){
+
+let total=
+Number(my_i.value)+
+Number(my_k.value)+
+Number(my_f.value)+
+Number(my_j.value)+
+Number(my_p.value);
+
+let obj=document.getElementById("myTotal");
+
+obj.innerText=total+" / 10";
+
+if(total===10){
+obj.className="good";
+}
+else{
+obj.className="bad";
+}
+
+}
+
+function nCr(n,r){
 
 if(r<0 || r>n)return 0;
 
 let result=1;
 
 for(let i=1;i<=r;i++){
-
 result=result*(n-r+i)/i;
-
 }
 
 return result;
@@ -167,36 +254,35 @@ return result;
 
 function probability(card){
 
-if(known[card]>0)return 100;
+if(known[card]>0){
+return 100;
+}
 
 let knownTotal=0;
 
-for(let k in known){
-
-knownTotal+=known[k];
-
+for(let c in known){
+knownTotal+=known[c];
 }
 
 let unknown=10-knownTotal;
 
-const totalComb=combination(22,unknown);
+let all=nCr(22,unknown);
 
-const missComb=combination(22-deck[card],unknown);
+let miss=nCr(22-deck[card],unknown);
 
-if(totalComb===0)return 0;
+if(all===0)return 0;
 
-return (1-missComb/totalComb)*100;
+return (1-miss/all)*100;
 
 }
 
-function updateDisplay(){
+function updateEnemy(){
 
 let html=`
 <tr>
 <th>カード</th>
-<th>デッキ枚数</th>
-<th>確定所持</th>
-<th>未使用で見えている枚数</th>
+<th>確定枚数</th>
+<th>見えている枚数</th>
 <th>所持確率</th>
 </tr>
 `;
@@ -210,7 +296,6 @@ total+=known[card];
 html+=`
 <tr>
 <td>${card}</td>
-<td>${deck[card]}</td>
 <td>${known[card]}</td>
 <td>${visible[card]}</td>
 <td>${probability(card).toFixed(1)}%</td>
@@ -219,11 +304,10 @@ html+=`
 
 }
 
-document.getElementById("table").innerHTML=html;
+enemyTable.innerHTML=html;
 
-document.getElementById("knownTotal").innerText=total;
-
-document.getElementById("unknownTotal").innerText=Math.max(0,10-total);
+knownCount.innerText=total;
+unknownCount.innerText=Math.max(0,10-total);
 
 renderHistory();
 
@@ -233,9 +317,9 @@ function renderHistory(){
 
 let text="";
 
-history.forEach((h,i)=>{
+history.forEach((v,i)=>{
 
-text += `${i+1}. ${h}<br>`;
+text += (i+1)+" . "+v+"<br>";
 
 });
 
@@ -250,7 +334,7 @@ visible[card]++;
 
 history.push("見た → "+card);
 
-updateDisplay();
+updateEnemy();
 
 }
 
@@ -262,13 +346,14 @@ visible[card]--;
 
 history.push("見えていたカード使用 → "+card);
 
-}else{
+}
+else{
 
-history.push("エラー(見えているカード不足) → "+card);
+history.push("エラー : "+card+" が見えていません");
 
 }
 
-updateDisplay();
+updateEnemy();
 
 }
 
@@ -278,25 +363,15 @@ known[card]++;
 
 history.push("新規カード使用 → "+card);
 
-updateDisplay();
+updateEnemy();
 
 }
 
-function undo(){
+function resetAll(){
 
-if(history.length===0)return;
-
-alert("簡易版のためUndoは履歴だけ戻します。完全Undoは次版で実装推奨です。");
-
-history.pop();
-
-renderHistory();
-
+if(!confirm("リセットしますか？")){
+return;
 }
-
-function resetGame(){
-
-if(!confirm("リセットしますか？")) return;
 
 for(let c in known){
 known[c]=0;
@@ -305,11 +380,12 @@ visible[c]=0;
 
 history=[];
 
-updateDisplay();
+updateEnemy();
 
 }
 
-updateDisplay();
+updateMyTotal();
+updateEnemy();
 
 </script>
 
